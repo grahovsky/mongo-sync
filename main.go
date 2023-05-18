@@ -136,7 +136,7 @@ func worker(jobs <-chan Doc, wg *sync.WaitGroup) {
 			}
 			// if there is, check by synchronization fields and replace
 		} else {
-			filter := bson.M{"_id": document["_id"], "updated_at": bson.M{"$ne": document["updated_at"]}}
+			filter := bson.M{"_id": document["_id"], config.SyncDateField: bson.M{"$ne": document[config.SyncDateField]}}
 			res, err := collectionDst.ReplaceOne(context.Background(), filter, document)
 			if res.ModifiedCount != 0 {
 				log.Println("replace", document)
@@ -220,7 +220,7 @@ func main() {
 		for _, collectionName := range collectionNames {
 			collectionSrc := dbSrc.Collection(collectionName)
 
-			filter := bson.M{"updated_at": bson.M{"$gt": requestTime}}
+			filter := bson.M{config.SyncDateField: bson.M{"$gt": requestTime}}
 			cur, err := collectionSrc.Find(context.Background(), filter)
 			if err != nil {
 				log.Fatal(err)
