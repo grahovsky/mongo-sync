@@ -1,0 +1,24 @@
+# name file = config
+
+[source]
+src_conn_str=mongodb://localhost:27017
+src_db_name=db1
+src_username=admin
+src_password=admin
+src_auth_sorce=admin
+
+[destination]
+dst_conn_str=mongodb://localhost:27017
+dst_db_name=db2
+dst_username=admin
+dst_password=admin
+dst_auth_sorce=admin
+
+[common]
+#default -2hour
+#first_sync_date=2023-05-19
+#timeout in sec
+timeout=15
+num_workers=10
+log_file=log.txt
+sync_date_field=updated_at
