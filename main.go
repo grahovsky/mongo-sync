@@ -88,9 +88,10 @@ func loadConfig(filename string) error {
 
 func GetClient(c Conn) *mongo.Client {
 	clientOptions := options.Client().ApplyURI(c.ConnString).SetAuth(options.Credential{
-		Username:   c.Username,
-		Password:   c.Password,
-		AuthSource: c.AuthSourc,
+		AuthMechanism: "SCRAM-SHA-256",
+		Username:      c.Username,
+		Password:      c.Password,
+		AuthSource:    c.AuthSourc,
 	})
 
 	clientDst, err := mongo.Connect(context.Background(), clientOptions)
@@ -112,7 +113,13 @@ func worker(jobs <-chan Doc, wg *sync.WaitGroup) {
 		config.DstAuthsorce,
 	}
 	clientDst := GetClient(conn)
-	defer clientDst.Disconnect(context.Background())
+	defer func() {
+		clientDst := clientDst
+		err := clientDst.Disconnect(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	dbDst := clientDst.Database(config.DstDbName)
 
@@ -149,32 +156,28 @@ func worker(jobs <-chan Doc, wg *sync.WaitGroup) {
 }
 
 func main() {
+	// Чтение значения переменной окружения "HOME"
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "config"
+	}
+
 	// Read config file
-	err := loadConfig("config")
+	err := loadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Create a log file
-	logFile, err := os.OpenFile(config.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
-	if err != nil {
-		log.Fatal(err)
+	if config.LogFile != "" {
+		logFile, err := os.OpenFile(config.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer logFile.Close()
+		// Set log output to file
+		log.SetOutput(logFile)
 	}
-	defer logFile.Close()
-
-	// Set log output to file
-	log.SetOutput(logFile)
-
-	// Connect to source database
-	conn := Conn{
-		config.SrcConnStr,
-		config.SrcUsername,
-		config.SrcPassword,
-		config.SrcAuthsorce,
-	}
-	clientSrc := GetClient(conn)
-	defer clientSrc.Disconnect(context.Background())
-	dbSrc := clientSrc.Database(config.SrcDbName)
 
 	// Set the start time of the check synchronization
 	var checkTime time.Time
@@ -191,6 +194,17 @@ func main() {
 	timeout := time.Second * time.Duration(config.Timeout)
 
 	for {
+
+		// Connect to source database
+		conn := Conn{
+			config.SrcConnStr,
+			config.SrcUsername,
+			config.SrcPassword,
+			config.SrcAuthsorce,
+		}
+		clientSrc := GetClient(conn)
+		dbSrc := clientSrc.Database(config.SrcDbName)
+
 		log.Println("Start sync iteration")
 
 		// Getting a list of collections in the source base
@@ -209,12 +223,8 @@ func main() {
 		jobs := make(chan Doc, 500)
 
 		var wg sync.WaitGroup
-		wg.Add(config.NumWorkers)
-
-		// create workers
-		for w := 1; w <= config.NumWorkers; w++ {
-			go worker(jobs, &wg)
-		}
+		wg.Add(1)
+		go worker(jobs, &wg)
 
 		// fetch new documents from all collections of the source base
 		for _, collectionName := range collectionNames {
@@ -225,7 +235,6 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			defer cur.Close(context.Background())
 
 			for cur.Next(context.Background()) {
 
@@ -241,12 +250,27 @@ func main() {
 			if err := cur.Err(); err != nil {
 				log.Fatal(err)
 			}
+			cur.Close(context.Background())
+		}
+
+		if len(jobs) > 0 {
+			wg.Add(config.NumWorkers)
+
+			// create workers
+			for w := 1; w <= config.NumWorkers; w++ {
+				go worker(jobs, &wg)
+			}
 		}
 
 		close(jobs)
 		wg.Wait()
 
 		log.Println("End sync iteration")
+
+		errDisc := clientSrc.Disconnect(context.Background())
+		if err != nil {
+			log.Fatal(errDisc)
+		}
 
 		duration := time.Since(checkTime)
 		if duration < timeout {

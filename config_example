@@ -15,10 +15,15 @@ dst_password=admin
 dst_auth_sorce=admin
 
 [common]
-#default -2hour
+#default -2*hour
 #first_sync_date=2023-05-19
+
 #timeout in sec
 timeout=15
+
 num_workers=10
-log_file=log.txt
+
+#default log to stdout
+#log_file=log.txt
+
 sync_date_field=updated_at
