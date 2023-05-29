@@ -19,7 +19,7 @@ RUN go mod download -x
 #     go get gopkg.in/ini.v1 && \
 #     go mod download -x
 
-COPY main.go .
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o mongo-sync
 
