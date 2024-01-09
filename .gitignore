@@ -1,4 +1,4 @@
-debug
-config
-log.txt
+debug/*
 .vscode
+bin/*
+configs/config.yaml
