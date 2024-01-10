@@ -1,0 +1,23 @@
+log:
+  level: "INFO"
+dbSource:
+  uri: "mongodb://localhost:27017"
+  name: "db1"
+  timeout: 3h
+  auth:
+    username: "admin"
+    password: "admin"
+    source: "admin"
+dbDestination:
+  uri: "mongodb://localhost:27017"
+  name: "db2"
+  timeout: 3h
+  auth:
+    username: "admin"
+    password: "admin"
+    source: "admin"
+common:
+  syncDateField: updated_at
+  numWorkers: 5
+  timeout: 5s
+  from: "2024-01-10T11:00:00+03:00"

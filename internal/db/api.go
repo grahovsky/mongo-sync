@@ -9,17 +9,17 @@ import (
 	"mongo-sync/internal/config"
 )
 
-func RecordOne(record *SaveReq, conn config.DbConn) error {
+func RecordOne(record *SaveReq, dbConf config.DbConn) error {
 	ctx := context.Background()
 
 	// Connect to source database
-	clientSrc, err := NewClient(conn)
+	clientSrc, err := NewClient(dbConf)
 	if err != nil {
 		return err
 	}
 
-	dbDst := clientSrc.Database(config.Settings.DBDestination.Name)
-	slog.Debug(fmt.Sprintf("start saving with mongo db %s", config.Settings.DBDestination.Name))
+	dbDst := clientSrc.Database(dbConf.Name)
+	slog.Debug(fmt.Sprintf("start saving with mongo db %s", dbConf.Name))
 
 	collectionSrc := dbDst.Collection(record.Collection)
 	res, err := collectionSrc.InsertOne(ctx, record.Data)
@@ -31,15 +31,15 @@ func RecordOne(record *SaveReq, conn config.DbConn) error {
 	return nil
 }
 
-func RecordMany(ctx context.Context, records *SaveReq, conn config.DbConn) error {
+func RecordMany(ctx context.Context, records *SaveReq, dbConf config.DbConn) error {
 	// Connect to source database
-	clientSrc, err := NewClient(conn)
+	clientSrc, err := NewClient(dbConf)
 	if err != nil {
 		return err
 	}
 
-	dbDst := clientSrc.Database(config.Settings.DBDestination.Name)
-	slog.Debug(fmt.Sprintf("start saving with mongo db %s", conn.Name))
+	dbDst := clientSrc.Database(dbConf.Name)
+	slog.Debug(fmt.Sprintf("start saving with mongo db %s", dbConf.Name))
 
 	collectionSrc := dbDst.Collection(records.Collection)
 	res, err := collectionSrc.InsertMany(ctx, records.Data)
@@ -61,4 +61,6 @@ func CleanClients() {
 			slog.Error(errDisc.Error())
 		}
 	}
+
+	slog.Info("clean clients cache SUCESSFULL")
 }

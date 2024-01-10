@@ -17,6 +17,8 @@ func Worker(jobs <-chan Doc, wg *sync.WaitGroup) error {
 	clientDst, _ := NewClient(config.Settings.DBDestination)
 	dbDst := clientDst.Database(config.Settings.DBDestination.Name)
 
+	processed := 0
+
 	for doc := range jobs {
 
 		document := doc.document
@@ -30,7 +32,7 @@ func Worker(jobs <-chan Doc, wg *sync.WaitGroup) error {
 
 		// if there is no document, add them
 		if count == 0 {
-			slog.Info(fmt.Sprintf("insert %s", document))
+			slog.Debug(fmt.Sprintf("insert %s", document))
 			_, err := collectionDst.InsertOne(context.Background(), document)
 			if err != nil {
 				slog.Error(err.Error())
@@ -40,13 +42,17 @@ func Worker(jobs <-chan Doc, wg *sync.WaitGroup) error {
 			filter := bson.M{"_id": document["_id"], config.Settings.Common.SyncDateField: bson.M{"$ne": document[config.Settings.Common.SyncDateField]}}
 			res, err := collectionDst.ReplaceOne(context.Background(), filter, document)
 			if res.ModifiedCount != 0 {
-				slog.Info(fmt.Sprintf("replace %s", document))
+				slog.Debug(fmt.Sprintf("replace %s", document))
 			}
 			if err != nil {
 				return err
 			}
 		}
+		processed++
 	}
 
+	if processed > 0 {
+		slog.Info(fmt.Sprintf("total processed: %d", processed))
+	}
 	return nil
 }
