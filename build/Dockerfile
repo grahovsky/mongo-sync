@@ -11,7 +11,7 @@ COPY go.mod go.sum *.crt ./
 ARG GOPROXY=https://proxy.golang.org,direct
 ENV GOPROXY=$GOPROXY
 
-RUN cp -f *.crt /usr/local/share/ca-certificates/ && update-ca-certificates
+RUN cp *.crt /usr/local/share/ca-certificates/; update-ca-certificates 
 
 RUN go mod download -x
 
