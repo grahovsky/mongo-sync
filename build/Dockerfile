@@ -6,10 +6,12 @@ ENV BIN_FILE=mongo-sync
 
 WORKDIR /workspace
 
-COPY go.mod go.sum ./
+COPY go.mod go.sum *.crt ./
 
 ARG GOPROXY=https://proxy.golang.org,direct
-RUN export GOPROXY=$GOPROXY
+ENV GOPROXY=$GOPROXY
+
+RUN cp -f *.crt /usr/local/share/ca-certificates/ && update-ca-certificates
 
 RUN go mod download -x
 
