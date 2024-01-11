@@ -9,7 +9,7 @@ import (
 	"mongo-sync/internal/config"
 )
 
-func RecordOne(record *SaveReq, dbConf config.DbConn) error {
+func RecordOne(record *SaveReq, dbConf config.DBConn) error {
 	ctx := context.Background()
 
 	// Connect to source database
@@ -31,7 +31,7 @@ func RecordOne(record *SaveReq, dbConf config.DbConn) error {
 	return nil
 }
 
-func RecordMany(ctx context.Context, records *SaveReq, dbConf config.DbConn) error {
+func RecordMany(ctx context.Context, records *SaveReq, dbConf config.DBConn) error {
 	// Connect to source database
 	clientSrc, err := NewClient(dbConf)
 	if err != nil {
@@ -62,5 +62,5 @@ func CleanClients() {
 		}
 	}
 
-	slog.Info("clean clients cache SUCESSFULL")
+	slog.Info("clean clients cache SUCCESSFUL")
 }

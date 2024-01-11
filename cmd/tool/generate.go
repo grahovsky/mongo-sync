@@ -12,8 +12,8 @@ import (
 )
 
 type Doc struct {
-	Text       string
-	Updated_at time.Time `bson:"updated_at"`
+	Text      string
+	UpdatedAt time.Time `bson:"updated_at"`
 }
 
 func main() {
@@ -23,11 +23,13 @@ func main() {
 	records := make([]interface{}, 0)
 
 	for i := 0; i < 5000; i++ {
-		rec := Doc{Updated_at: time.Now(), Text: fmt.Sprintf("test Item%d", i)}
+		rec := Doc{UpdatedAt: time.Now(), Text: fmt.Sprintf("test Item%d", i)}
 		records = append(records, rec)
 	}
 	fmt.Println(config.Settings.DBSource)
-	err := db.RecordMany(context.Background(), &db.SaveReq{Collection: "testCollection1", Data: records}, config.Settings.DBSource)
+	err := db.RecordMany(context.Background(),
+		&db.SaveReq{Collection: "testCollection1", Data: records},
+		config.Settings.DBSource)
 	if err != nil {
 		slog.Error(err.Error())
 	}

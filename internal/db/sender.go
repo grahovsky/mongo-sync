@@ -20,7 +20,6 @@ func Worker(jobs <-chan Doc, wg *sync.WaitGroup) error {
 	processed := 0
 
 	for doc := range jobs {
-
 		document := doc.document
 		collectionDst := dbDst.Collection(doc.collection)
 
@@ -39,7 +38,10 @@ func Worker(jobs <-chan Doc, wg *sync.WaitGroup) error {
 			}
 			// if there is, check by synchronization fields and replace
 		} else {
-			filter := bson.M{"_id": document["_id"], config.Settings.Common.SyncDateField: bson.M{"$ne": document[config.Settings.Common.SyncDateField]}}
+			filter := bson.M{
+				"_id":                                document["_id"],
+				config.Settings.Common.SyncDateField: bson.M{"$ne": document[config.Settings.Common.SyncDateField]},
+			}
 			res, err := collectionDst.ReplaceOne(context.Background(), filter, document)
 			if res.ModifiedCount != 0 {
 				slog.Debug(fmt.Sprintf("replace %s", document))

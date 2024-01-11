@@ -42,7 +42,7 @@ func main() {
 		checkTime, err = time.Parse(time.RFC3339, config.Settings.Common.From)
 		if err != nil {
 			slog.Error(err.Error())
-			os.Exit(1)
+			os.Exit(1) //nolint
 		}
 	}
 	slog.Info(checkTime.String())

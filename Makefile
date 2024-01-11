@@ -23,7 +23,7 @@ run-img: build-img
 	docker run -v $$(pwd)/configs:/configs $(DOCKER_IMG) 
 
 install-lint-deps:
-	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.54.2
+	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.55.2
 
 lint: install-lint-deps
 	golangci-lint run --timeout=90s ./...

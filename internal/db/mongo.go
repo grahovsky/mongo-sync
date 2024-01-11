@@ -37,7 +37,7 @@ func init() {
 	Pull.Clients = make(MongoClients)
 }
 
-func NewClient(conn config.DbConn) (*mongo.Client, error) {
+func NewClient(conn config.DBConn) (*mongo.Client, error) {
 	Pull.mu.Lock()
 	defer Pull.mu.Unlock()
 

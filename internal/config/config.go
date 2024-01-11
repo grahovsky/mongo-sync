@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-type DbConn struct {
+type DBConn struct {
 	URI     string        `mapstructure:"uri"`
 	Name    string        `mapstructure:"name"`
 	Timeout time.Duration `mapstructure:"timeout"`
@@ -25,8 +25,8 @@ type Config struct {
 	Log struct {
 		Level string `mapstructure:"level" env:"LOG_LEVEL"`
 	} `mapstructure:"log"`
-	DBSource      DbConn `mapstructure:"dbSource"`
-	DBDestination DbConn `mapstructure:"dbDestination"`
+	DBSource      DBConn `mapstructure:"dbSource"`
+	DBDestination DBConn `mapstructure:"dbDestination"`
 	Common        struct {
 		SyncDateField string        `mapstructure:"syncDateField" env:"SYNC_DATE_FIELD"`
 		NumWorkers    int           `mapstructure:"numWorkers" env:"SYNC_NUM_WORKERS"`
