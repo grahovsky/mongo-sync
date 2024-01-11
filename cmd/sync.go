@@ -87,11 +87,21 @@ func syncIterate() {
 	docsChan := make(chan db.Doc, 5000)
 
 	var wg sync.WaitGroup
-	go db.RequestNewDocs(docsChan, requestTime)
-	wg.Add(config.Settings.Common.NumWorkers)
+	go func() {
+		err := db.RequestNewDocs(docsChan, requestTime)
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	}()
 
+	wg.Add(config.Settings.Common.NumWorkers)
 	for w := 0; w < config.Settings.Common.NumWorkers; w++ {
-		go db.Worker(docsChan, &wg)
+		go func() {
+			err := db.Worker(docsChan, &wg)
+			if err != nil {
+				slog.Error(err.Error())
+			}
+		}()
 	}
 
 	wg.Wait()
