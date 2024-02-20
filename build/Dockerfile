@@ -1,4 +1,4 @@
-ARG IMAGE=golang:1.21
+ARG IMAGE=golang:1.22
 FROM ${IMAGE} AS build
 LABEL stage=build
 
