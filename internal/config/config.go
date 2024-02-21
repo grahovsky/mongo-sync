@@ -31,6 +31,7 @@ type Config struct {
 		SyncDateField string        `mapstructure:"syncDateField" env:"SYNC_DATE_FIELD"`
 		NumWorkers    int           `mapstructure:"numWorkers" env:"SYNC_NUM_WORKERS"`
 		Timeout       time.Duration `mapstructure:"timeout" env:"SYNC_TIMEOUT"`
+		TimeDelta     time.Duration `mapstructure:"timeDelta" env:"SYNC_TIME_DELTA"`
 		From          string        `mapstructure:"from" env:"SYNC_FROM"`
 	} `mapstructure:"common"`
 }

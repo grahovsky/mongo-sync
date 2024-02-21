@@ -31,6 +31,7 @@ func main() {
 	config.Init()
 	logger.Set(logger.Options{Level: config.Settings.Log.Level, AddSource: false})
 
+	slog.Debug(fmt.Sprintf("config settings: %+v", config.Settings))
 	slog.Info(version())
 
 	// Set the start time of the check synchronization
@@ -77,7 +78,7 @@ func main() {
 
 func syncIterate() {
 	// time to filter data for processing
-	requestTime := checkTime.Add(-2 * config.Settings.Common.Timeout)
+	requestTime := checkTime.Add(-config.Settings.Common.TimeDelta)
 	slog.Debug(fmt.Sprintf("request time: %s", requestTime))
 
 	// Update the check time to the beginning of the request

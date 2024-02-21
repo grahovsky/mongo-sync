@@ -20,4 +20,5 @@ common:
   syncDateField: updated_at
   numWorkers: 5
   timeout: 5s
+  timeDelta: 2m
   from: "2024-01-10T11:00:00+03:00"

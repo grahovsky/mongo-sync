@@ -12,8 +12,8 @@ import (
 )
 
 type Doc struct {
-	Text      string
-	UpdatedAt time.Time `bson:"updated_at"`
+	Text        string
+	DateUpdated time.Time `bson:"dateUpdated"`
 }
 
 func main() {
@@ -22,8 +22,8 @@ func main() {
 
 	records := make([]interface{}, 0)
 
-	for i := 0; i < 5000; i++ {
-		rec := Doc{UpdatedAt: time.Now(), Text: fmt.Sprintf("test Item%d", i)}
+	for i := 0; i < 500; i++ {
+		rec := Doc{DateUpdated: time.Now(), Text: fmt.Sprintf("test Item%d", i)}
 		records = append(records, rec)
 	}
 	fmt.Println(config.Settings.DBSource)
