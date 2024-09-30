@@ -23,16 +23,16 @@ type DBConn struct {
 
 type Config struct {
 	Log struct {
-		Level string `mapstructure:"level" env:"LOG_LEVEL"`
+		Level string `mapstructure:"level"`
 	} `mapstructure:"log"`
 	DBSource      DBConn `mapstructure:"dbSource"`
 	DBDestination DBConn `mapstructure:"dbDestination"`
 	Common        struct {
-		SyncDateField string        `mapstructure:"syncDateField" env:"SYNC_DATE_FIELD"`
-		NumWorkers    int           `mapstructure:"numWorkers" env:"SYNC_NUM_WORKERS"`
-		Timeout       time.Duration `mapstructure:"timeout" env:"SYNC_TIMEOUT"`
-		TimeDelta     time.Duration `mapstructure:"timeDelta" env:"SYNC_TIME_DELTA"`
-		From          string        `mapstructure:"from" env:"SYNC_FROM"`
+		SyncDateField string        `mapstructure:"syncDateField"`
+		NumWorkers    int           `mapstructure:"numWorkers"`
+		Timeout       time.Duration `mapstructure:"timeout"`
+		TimeDelta     time.Duration `mapstructure:"timeDelta"`
+		From          string        `mapstructure:"from"`
 	} `mapstructure:"common"`
 }
 
@@ -44,54 +44,31 @@ type Args struct {
 var Settings *Config
 
 func Init() {
-	Settings = defaultSettings()
+	parseArgs()
 
-	args := Args{}
-	pflag.StringVarP(&args.ConfigPath, "config", "c", "./configs/config.yaml", "Path to configuration file")
-	pflag.StringVarP(&args.LogLevel, "loglevel", "l", "INFO", "log level app")
-	pflag.Parse()
+	viper.SetDefault("log.level", "ERROR")
+	viper.SetDefault("config", "./configs/config.yaml")
 
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
-	if _, err := os.Stat(args.ConfigPath); err == nil {
-		viper.SetConfigFile(args.ConfigPath)
-		if err := viper.ReadInConfig(); err != nil {
-			slog.Debug("not found default config", err)
-		}
+
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(viper.GetString("config"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		slog.Error("Failed to read config file", "error", err)
 	}
 
 	if err := viper.Unmarshal(&Settings); err != nil {
-		slog.Error(err.Error())
-	}
-
-	// env priority
-	envPriority()
-
-	// arg priority
-	if argExist("--loglevel") || argExist("-l") {
-		Settings.Log.Level = args.LogLevel
+		slog.Error("Failed to unmarshal configuration", "error", err)
+		os.Exit(1)
 	}
 }
 
-func defaultSettings() *Config {
-	return &Config{
-		Log: struct {
-			Level string "mapstructure:\"level\" env:\"LOG_LEVEL\""
-		}{Level: "ERROR"},
-	}
-}
+func parseArgs() {
+	pflag.String("config", "./configs/config.yaml", "Path to configuration file")
+	pflag.String("log.level", "", "log level app")
+	pflag.Parse()
 
-func envPriority() {
-	if val := viper.GetString("LOG_LEVEL"); val != "" {
-		Settings.Log.Level = val
-	}
-}
-
-func argExist(arg string) bool {
-	for _, s := range os.Args {
-		if strings.Contains(s, arg) {
-			return true
-		}
-	}
-
-	return false
+	viper.BindPFlags(pflag.CommandLine)
 }
